@@ -2,6 +2,7 @@ import type { ClassSession } from "../types";
 
 interface TopBarProps {
     online: boolean;
+    reconnecting: boolean;
     presentCount: number;
     lateCount: number;
     session: ClassSession | null;
@@ -10,6 +11,7 @@ interface TopBarProps {
 
 export default function TopBar({
     online,
+    reconnecting,
     presentCount,
     lateCount,
     session,
@@ -27,6 +29,20 @@ export default function TopBar({
             + (lateCount > 0 ? `, ${lateCount} late` : "")
         : `${today} · no class running`;
 
+    /* A wobble reads as "reconnecting"; only a sustained outage is offline */
+
+    const connectionClass = !online
+        ? "connection-dot offline"
+        : reconnecting
+            ? "connection-dot waiting"
+            : "connection-dot";
+
+    const connectionText = !online
+        ? "Connection Lost"
+        : reconnecting
+            ? "Reconnecting..."
+            : "System Online";
+
     return (
 
         <header className="topbar">
@@ -40,8 +56,8 @@ export default function TopBar({
             </div>
 
             <div className="connection">
-                <span className={online ? "connection-dot" : "connection-dot offline"} />
-                <span>{online ? "System Online" : "Connection Lost"}</span>
+                <span className={connectionClass} />
+                <span>{connectionText}</span>
             </div>
 
         </header>

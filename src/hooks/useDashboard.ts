@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { supabase } from "../lib/supabaseClient";
 import { normalizeUid } from "../lib/uid";
+import { describeError } from "../lib/errors";
 import { buildAttendance } from "../lib/attendance";
 import type {
     AttendanceEntry,
@@ -16,6 +17,13 @@ const REFRESH_MS = 1500;
 /* Generous ceiling for the taps in one class session */
 const SCAN_LIMIT = 500;
 
+/*
+ * A single dropped request is normal on classroom wifi. Polling every
+ * 1.5s means we hear about it constantly, so only call the dashboard
+ * offline once this many polls in a row have failed.
+ */
+const FAILURES_BEFORE_OFFLINE = 3;
+
 export interface UseDashboardResult {
     session: ClassSession | null;
     sessionActive: boolean;
@@ -28,6 +36,7 @@ export interface UseDashboardResult {
     latest: EnrichedScan | null;
     loading: boolean;
     error: string | null;
+    reconnecting: boolean;
     busy: boolean;
     refresh: () => Promise<void>;
     startSession: (name: string) => Promise<string | null>;
@@ -50,6 +59,7 @@ export function useDashboard(): UseDashboardResult {
     const [onTimeCount, setOnTimeCount] = useState(0);
     const [unknownCount, setUnknownCount] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [reconnecting, setReconnecting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState(false);
 
@@ -57,6 +67,43 @@ export function useDashboard(): UseDashboardResult {
     const inFlight = useRef(false);
 
     const mounted = useRef(true);
+
+    /* Consecutive failed polls — reset by the first one that works */
+    const failures = useRef(0);
+
+    /*
+     * Last good data stays on screen through a wobble; only a sustained
+     * outage swaps the dashboard into its offline state.
+     */
+
+    const reportFailure = useCallback((err: unknown) => {
+
+        if (!mounted.current) {
+            return;
+        }
+
+        failures.current += 1;
+
+        if (failures.current >= FAILURES_BEFORE_OFFLINE) {
+            setError(describeError(err));
+            setReconnecting(false);
+        } else {
+            setReconnecting(true);
+        }
+
+    }, []);
+
+    const reportSuccess = useCallback(() => {
+
+        if (!mounted.current) {
+            return;
+        }
+
+        failures.current = 0;
+        setError(null);
+        setReconnecting(false);
+
+    }, []);
 
     const load = useCallback(async (): Promise<void> => {
 
@@ -83,7 +130,7 @@ export function useDashboard(): UseDashboardResult {
 
             if (sessionResult.error) {
                 console.error("Sessions error:", sessionResult.error);
-                setError(sessionResult.error.message);
+                reportFailure(sessionResult.error);
                 return;
             }
 
@@ -99,7 +146,7 @@ export function useDashboard(): UseDashboardResult {
                 setLateCount(0);
                 setOnTimeCount(0);
                 setUnknownCount(0);
-                setError(null);
+                reportSuccess();
 
                 return;
 
@@ -134,13 +181,13 @@ export function useDashboard(): UseDashboardResult {
 
             if (scanResult.error) {
                 console.error("RFID scans error:", scanResult.error);
-                setError(scanResult.error.message);
+                reportFailure(scanResult.error);
                 return;
             }
 
             if (studentResult.error) {
                 console.error("Students error:", studentResult.error);
-                setError(studentResult.error.message);
+                reportFailure(studentResult.error);
                 return;
             }
 
@@ -166,15 +213,13 @@ export function useDashboard(): UseDashboardResult {
             setLateCount(snapshot.lateCount);
             setOnTimeCount(snapshot.onTimeCount);
             setUnknownCount(snapshot.unknownCount);
-            setError(null);
+            reportSuccess();
 
         } catch (err) {
 
             console.error("Dashboard load failed:", err);
 
-            if (mounted.current) {
-                setError(err instanceof Error ? err.message : String(err));
-            }
+            reportFailure(err);
 
         } finally {
 
@@ -186,7 +231,7 @@ export function useDashboard(): UseDashboardResult {
 
         }
 
-    }, []);
+    }, [reportFailure, reportSuccess]);
 
     /* Returns an error message, or null when it worked */
 
@@ -200,22 +245,37 @@ export function useDashboard(): UseDashboardResult {
 
         setBusy(true);
 
-        const { error: insertError } = await supabase
-            .from("class_sessions")
-            .insert({ name: trimmed });
+        try {
 
-        setBusy(false);
+            const { error: insertError } = await supabase
+                .from("class_sessions")
+                .insert({ name: trimmed });
 
-        if (insertError) {
+            if (insertError) {
 
-            console.error(insertError);
+                console.error(insertError);
 
-            /* The partial unique index rejects a second open session */
-            if (insertError.code === "23505") {
-                return "A class is already running. Stop it first.";
+                /* The partial unique index rejects a second open session */
+                if (insertError.code === "23505") {
+                    return "A class is already running. Stop it first.";
+                }
+
+                return describeError(insertError.message);
+
             }
 
-            return insertError.message;
+        } catch (err) {
+
+            /* The network dropped mid-write — say so instead of throwing */
+            console.error("Start session failed:", err);
+
+            return describeError(err);
+
+        } finally {
+
+            if (mounted.current) {
+                setBusy(false);
+            }
 
         }
 
@@ -233,16 +293,30 @@ export function useDashboard(): UseDashboardResult {
 
         setBusy(true);
 
-        const { error: updateError } = await supabase
-            .from("class_sessions")
-            .update({ ended_at: new Date().toISOString() })
-            .eq("id", session.id);
+        try {
 
-        setBusy(false);
+            const { error: updateError } = await supabase
+                .from("class_sessions")
+                .update({ ended_at: new Date().toISOString() })
+                .eq("id", session.id);
 
-        if (updateError) {
-            console.error(updateError);
-            return updateError.message;
+            if (updateError) {
+                console.error(updateError);
+                return describeError(updateError.message);
+            }
+
+        } catch (err) {
+
+            console.error("Stop session failed:", err);
+
+            return describeError(err);
+
+        } finally {
+
+            if (mounted.current) {
+                setBusy(false);
+            }
+
         }
 
         await load();
@@ -278,6 +352,7 @@ export function useDashboard(): UseDashboardResult {
         latest: scans[0] ?? null,
         loading,
         error,
+        reconnecting,
         busy,
         refresh: load,
         startSession,

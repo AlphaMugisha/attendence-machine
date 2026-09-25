@@ -19,6 +19,7 @@ export default function App() {
         presentCount,
         lateCount,
         error,
+        reconnecting,
         busy,
         refresh,
         startSession,
@@ -64,6 +65,7 @@ export default function App() {
 
                 <TopBar
                     online={online}
+                    reconnecting={reconnecting}
                     presentCount={presentCount}
                     lateCount={lateCount}
                     session={session}
@@ -92,7 +94,11 @@ export default function App() {
                             onStop={endSession}
                         />
 
-                        <DeviceCard online={online} />
+                        <DeviceCard
+                            online={online}
+                            reconnecting={reconnecting}
+                            error={error}
+                        />
 
                     </div>
 
