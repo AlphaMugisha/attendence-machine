@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Attendance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h1>RFID Attendance</h1>
+        <p class="subtitle">ESP32 Card Scanner</p>
+
+        <div class="status">
+            <span></span>
+            Connected to Supabase
+        </div>
+
+        <div class="latest-card">
+            <p>LAST CARD SCANNED</p>
+            <h2 id="latestUid">Waiting for card...</h2>
+            <small id="latestTime">--</small>
+        </div>
+
+        <div class="history">
+            <h2>Recent Scans</h2>
+
+            <div id="scanList">
+                <p>No scans yet.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
