@@ -38,9 +38,17 @@ export interface EnrichedScan extends RfidScan {
     student: Student | null;
     isDuplicate: boolean;
     checkedInAt: string;
+    isLate: boolean;
+    minutesLate: number;
 }
 
-/* One card per person for the session: the register, not the tap log */
+/*
+ * One card per person for the session: the register, not the tap log.
+ *
+ * `minutesLate` counts from the moment the class started, and is set
+ * even when the student was inside the grace period — `isLate` is the
+ * flag that decides how they are marked.
+ */
 
 export interface AttendanceEntry {
     key: string;
@@ -49,11 +57,15 @@ export interface AttendanceEntry {
     checkedInAt: string;
     lastScanAt: string;
     scanCount: number;
+    minutesLate: number;
+    isLate: boolean;
 }
 
 export interface AttendanceSnapshot {
     scans: EnrichedScan[];
     entries: AttendanceEntry[];
     presentCount: number;
+    lateCount: number;
+    onTimeCount: number;
     unknownCount: number;
 }

@@ -17,6 +17,7 @@ export default function App() {
         entries,
         latest,
         presentCount,
+        lateCount,
         error,
         busy,
         refresh,
@@ -64,6 +65,7 @@ export default function App() {
                 <TopBar
                     online={online}
                     presentCount={presentCount}
+                    lateCount={lateCount}
                     session={session}
                     sessionActive={sessionActive}
                 />
@@ -97,6 +99,7 @@ export default function App() {
                     <AttendanceGrid
                         entries={entries}
                         presentCount={presentCount}
+                        lateCount={lateCount}
                         session={session}
                         sessionActive={sessionActive}
                         onAssign={uid => setAssigningUid(uid)}

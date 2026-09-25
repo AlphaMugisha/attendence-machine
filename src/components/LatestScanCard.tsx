@@ -1,3 +1,4 @@
+import { formatLateness } from "../lib/attendance";
 import type { EnrichedScan } from "../types";
 
 function formatTime(value: string | undefined | null): string {
@@ -39,6 +40,8 @@ export default function LatestScanCard({
 
     const duplicate = Boolean(latest?.isDuplicate);
 
+    const late = Boolean(latest?.isLate);
+
     const title = !sessionActive
         ? "Class not running"
         : !latest
@@ -47,11 +50,17 @@ export default function LatestScanCard({
                 ? "New Card Detected"
                 : duplicate
                     ? "Already Present"
-                    : "Student Detected";
+                    : late
+                        ? "Marked Late"
+                        : "Student Detected";
 
-    const cardClass = duplicate && sessionActive
-        ? "card latest-card is-duplicate"
-        : "card latest-card";
+    const cardClass = !sessionActive
+        ? "card latest-card"
+        : duplicate
+            ? "card latest-card is-duplicate"
+            : late
+                ? "card latest-card is-late"
+                : "card latest-card";
 
     return (
 
@@ -147,8 +156,26 @@ export default function LatestScanCard({
                             <strong>Student already present</strong>
 
                             <span>
-                                Checked in at {formatTime(latest?.checkedInAt)}.
-                                This tap was not recorded again.
+                                Checked in at {formatTime(latest?.checkedInAt)}
+                                {late
+                                    ? `, late by ${formatLateness(latest?.minutesLate ?? 0)}`
+                                    : ""}
+                                . This tap was not recorded again.
+                            </span>
+
+                        </div>
+
+                    ) : late ? (
+
+                        <div className="late-notice">
+
+                            <strong>
+                                Late by {formatLateness(latest?.minutesLate ?? 0)}
+                            </strong>
+
+                            <span>
+                                Class started before this check-in.
+                                Marked present, but late.
                             </span>
 
                         </div>
@@ -157,7 +184,7 @@ export default function LatestScanCard({
 
                         <div className="attendance-status">
                             <span className="status-dot" />
-                            <strong>PRESENT</strong>
+                            <strong>ON TIME</strong>
                         </div>
 
                     )}

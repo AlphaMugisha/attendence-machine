@@ -22,6 +22,8 @@ export interface UseDashboardResult {
     scans: EnrichedScan[];
     entries: AttendanceEntry[];
     presentCount: number;
+    lateCount: number;
+    onTimeCount: number;
     unknownCount: number;
     latest: EnrichedScan | null;
     loading: boolean;
@@ -44,6 +46,8 @@ export function useDashboard(): UseDashboardResult {
     const [scans, setScans] = useState<EnrichedScan[]>([]);
     const [entries, setEntries] = useState<AttendanceEntry[]>([]);
     const [presentCount, setPresentCount] = useState(0);
+    const [lateCount, setLateCount] = useState(0);
+    const [onTimeCount, setOnTimeCount] = useState(0);
     const [unknownCount, setUnknownCount] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -92,6 +96,8 @@ export function useDashboard(): UseDashboardResult {
                 setScans([]);
                 setEntries([]);
                 setPresentCount(0);
+                setLateCount(0);
+                setOnTimeCount(0);
                 setUnknownCount(0);
                 setError(null);
 
@@ -146,14 +152,19 @@ export function useDashboard(): UseDashboardResult {
                 studentMap[normalizeUid(student.card_uid)] = student;
             });
 
+            /* Lateness is measured from the moment the class started */
+
             const snapshot = buildAttendance(
                 (scanResult.data ?? []) as RfidScan[],
-                studentMap
+                studentMap,
+                current.started_at
             );
 
             setScans(snapshot.scans);
             setEntries(snapshot.entries);
             setPresentCount(snapshot.presentCount);
+            setLateCount(snapshot.lateCount);
+            setOnTimeCount(snapshot.onTimeCount);
             setUnknownCount(snapshot.unknownCount);
             setError(null);
 
@@ -261,6 +272,8 @@ export function useDashboard(): UseDashboardResult {
         scans,
         entries,
         presentCount,
+        lateCount,
+        onTimeCount,
         unknownCount,
         latest: scans[0] ?? null,
         loading,

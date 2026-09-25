@@ -1,3 +1,4 @@
+import { formatLateness } from "../lib/attendance";
 import type { AttendanceEntry, ClassSession } from "../types";
 
 function formatTime(value: string): string {
@@ -20,6 +21,7 @@ function initials(name: string): string {
 interface AttendanceGridProps {
     entries: AttendanceEntry[];
     presentCount: number;
+    lateCount: number;
     session: ClassSession | null;
     sessionActive: boolean;
     onAssign: (uid: string) => void;
@@ -28,6 +30,7 @@ interface AttendanceGridProps {
 export default function AttendanceGrid({
     entries,
     presentCount,
+    lateCount,
     session,
     sessionActive,
     onAssign
@@ -63,6 +66,11 @@ export default function AttendanceGrid({
                         <span>Present</span>
                     </div>
 
+                    <div className={lateCount > 0 ? "stat is-late" : "stat"}>
+                        <strong>{lateCount}</strong>
+                        <span>Late</span>
+                    </div>
+
                     <div className={sessionActive ? "scan-count" : "scan-count is-closed"}>
                         {sessionActive ? "LIVE" : "FINAL"}
                     </div>
@@ -89,9 +97,11 @@ export default function AttendanceGrid({
 
                             <article
                                 className={
-                                    student
-                                        ? "attendance-tile"
-                                        : "attendance-tile is-unassigned"
+                                    !student
+                                        ? "attendance-tile is-unassigned"
+                                        : entry.isLate
+                                            ? "attendance-tile is-late"
+                                            : "attendance-tile"
                                 }
                                 key={entry.key}
                             >
@@ -104,12 +114,18 @@ export default function AttendanceGrid({
 
                                     <span
                                         className={
-                                            student
-                                                ? "scan-status"
-                                                : "scan-status unassigned-status"
+                                            !student
+                                                ? "scan-status unassigned-status"
+                                                : entry.isLate
+                                                    ? "scan-status late-status"
+                                                    : "scan-status"
                                         }
                                     >
-                                        {student ? "PRESENT" : "UNASSIGNED"}
+                                        {!student
+                                            ? "UNASSIGNED"
+                                            : entry.isLate
+                                                ? "LATE"
+                                                : "ON TIME"}
                                     </span>
 
                                 </div>
@@ -127,7 +143,9 @@ export default function AttendanceGrid({
                                 <div className="tile-footer">
 
                                     <div>
-                                        <span>Checked in</span>
+                                        <span>
+                                            {entry.isLate ? "Arrived" : "Checked in"}
+                                        </span>
                                         <strong>{formatTime(entry.checkedInAt)}</strong>
                                     </div>
 
@@ -144,6 +162,12 @@ export default function AttendanceGrid({
                                     )}
 
                                 </div>
+
+                                {entry.isLate && (
+                                    <p className="late-line">
+                                        Late by {formatLateness(entry.minutesLate)}
+                                    </p>
+                                )}
 
                                 {!student && (
                                     <button

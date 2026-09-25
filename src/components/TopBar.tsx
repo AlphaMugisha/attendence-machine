@@ -3,6 +3,7 @@ import type { ClassSession } from "../types";
 interface TopBarProps {
     online: boolean;
     presentCount: number;
+    lateCount: number;
     session: ClassSession | null;
     sessionActive: boolean;
 }
@@ -10,6 +11,7 @@ interface TopBarProps {
 export default function TopBar({
     online,
     presentCount,
+    lateCount,
     session,
     sessionActive
 }: TopBarProps) {
@@ -21,7 +23,8 @@ export default function TopBar({
     });
 
     const subtitle = sessionActive && session
-        ? `${session.name} · ${presentCount} ${presentCount === 1 ? "student" : "students"} present`
+        ? `${session.name} · ${presentCount} present`
+            + (lateCount > 0 ? `, ${lateCount} late` : "")
         : `${today} · no class running`;
 
     return (

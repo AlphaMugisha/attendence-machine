@@ -359,6 +359,67 @@ h1 {
 }
 
 
+/* LATE */
+
+.latest-card.is-late {
+    background: #fff8f4;
+    box-shadow: 0 10px 30px rgba(190, 95, 50, 0.12);
+}
+
+.latest-card.is-late .icon {
+    background: #f6e3d8;
+    color: #a1552c;
+}
+
+.late-notice {
+    margin-top: 20px;
+    background: #fdeee4;
+    border-left: 4px solid #e07a43;
+    border-radius: 12px;
+    padding: 15px 17px;
+}
+
+.late-notice strong {
+    display: block;
+    color: #a1552c;
+    font-size: 17px;
+    margin-bottom: 5px;
+}
+
+.late-notice span {
+    color: #9c6a4d;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.late-status {
+    background: #fdeee4;
+    color: #a1552c;
+}
+
+.attendance-tile.is-late {
+    background: #fdf6f1;
+    border-color: #f2e0d4;
+}
+
+.attendance-tile.is-late .avatar {
+    background: #e07a43;
+}
+
+.late-line {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #ecd9cb;
+    color: #a1552c;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.stat.is-late strong {
+    color: #c2632f;
+}
+
+
 /* ALREADY PRESENT */
 
 .latest-card.is-duplicate {
