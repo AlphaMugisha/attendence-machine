@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://muejplustswegkojbrbd.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://muejplustswegkojbrbd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11ZWpwbHVzdHN3ZWdrb2picmJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyOTQwODQsImV4cCI6MjEwNTg3MDA4NH0.E1O--YgBk9f7UHpHE1qRYLSOArfl-AWQQ-e9oH9iiFs";
 
 const supabaseClient = window.supabase.createClient(
