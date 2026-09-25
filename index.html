@@ -1,10 +1,12 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>RFID Attendance System</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,57 +14,143 @@
 
     <div class="dashboard">
 
+        <!-- TOP BAR -->
         <header class="topbar">
+
             <div>
                 <p class="eyebrow">SMART ATTENDANCE</p>
+
                 <h1>RFID Attendance</h1>
-                <p class="subtitle">Monitor card scans from your ESP32 device.</p>
+
+                <p class="subtitle">
+                    Monitor student attendance using RFID cards.
+                </p>
             </div>
 
             <div class="connection">
                 <span class="connection-dot"></span>
                 <span>System Online</span>
             </div>
+
         </header>
 
 
+        <!-- MAIN GRID -->
         <main class="grid">
 
+            <!-- LATEST SCAN -->
             <section class="card latest-card">
+
                 <div class="card-header">
+
                     <div>
                         <p class="label">LATEST SCAN</p>
-                        <h2>Last Card</h2>
+                        <h2 id="latestTitle">Waiting for card</h2>
                     </div>
 
-                    <div class="icon">RFID</div>
+                    <div class="icon">
+                        RFID
+                    </div>
+
                 </div>
 
-                <div class="uid-container">
+
+                <!-- UNKNOWN CARD -->
+                <div id="unknownCard" class="unknown-card hidden">
+
                     <p class="uid-label">CARD UID</p>
-                    <h3 id="latestUid">Waiting for card...</h3>
+
+                    <h3 id="latestUid">
+                        --
+                    </h3>
+
+                    <p class="unknown-text">
+                        This card has not been assigned to a student yet.
+                    </p>
+
+                    <button id="assignButton" class="assign-button">
+                        + Assign to Student
+                    </button>
+
                 </div>
 
-                <div class="scan-time">
-                    <span>Scanned at</span>
-                    <strong id="latestTime">--</strong>
+
+                <!-- ASSIGNED STUDENT -->
+                <div id="studentCard" class="student-card hidden">
+
+                    <p class="student-label">
+                        STUDENT
+                    </p>
+
+                    <h3 id="latestStudentName">
+                        --
+                    </h3>
+
+                    <div class="student-details">
+
+                        <div>
+                            <span>Student ID</span>
+                            <strong id="latestStudentId">
+                                --
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Class</span>
+                            <strong id="latestClass">
+                                --
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="attendance-status">
+                        <span class="status-dot"></span>
+                        <strong>PRESENT</strong>
+                    </div>
+
                 </div>
+
+
+                <!-- SCAN TIME -->
+                <div class="scan-time">
+
+                    <span>Scanned at</span>
+
+                    <strong id="latestTime">
+                        --
+                    </strong>
+
+                </div>
+
             </section>
 
 
+            <!-- DEVICE -->
             <section class="card device-card">
+
                 <p class="label">DEVICE</p>
+
                 <h2>ESP32 Scanner</h2>
 
+
                 <div class="device-status">
+
                     <span class="status-dot"></span>
+
                     <div>
                         <strong>Connected</strong>
-                        <small>RFID reader active</small>
+
+                        <small>
+                            RFID reader active
+                        </small>
                     </div>
+
                 </div>
 
+
                 <div class="device-info">
+
                     <div>
                         <span>Connection</span>
                         <strong>Wi-Fi</strong>
@@ -72,13 +160,17 @@
                         <span>Database</span>
                         <strong>Supabase</strong>
                     </div>
+
                 </div>
+
             </section>
 
 
+            <!-- RECENT SCANS -->
             <section class="card history-card">
 
                 <div class="card-header">
+
                     <div>
                         <p class="label">ACTIVITY</p>
                         <h2>Recent Scans</h2>
@@ -87,15 +179,22 @@
                     <div class="scan-count">
                         LIVE
                     </div>
+
                 </div>
 
+
                 <div id="scanList" class="scan-list">
-                    <p class="empty">No scans yet.</p>
+
+                    <p class="empty">
+                        No scans yet.
+                    </p>
+
                 </div>
 
             </section>
 
         </main>
+
 
         <footer>
             RFID Attendance System · ESP32 + Supabase
@@ -103,9 +202,116 @@
 
     </div>
 
+
+    <!-- ASSIGN STUDENT MODAL -->
+
+    <div id="assignModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+                    <p class="label">NEW RFID CARD</p>
+
+                    <h2>Assign Card</h2>
+                </div>
+
+                <button id="closeModal" class="close-button">
+                    ×
+                </button>
+
+            </div>
+
+
+            <p class="modal-description">
+                Assign this RFID card to a student. The next time
+                the card is scanned, the student's name will appear.
+            </p>
+
+
+            <div class="detected-card">
+
+                <span>Card UID</span>
+
+                <strong id="modalUid">
+                    --
+                </strong>
+
+            </div>
+
+
+            <form id="studentForm">
+
+                <div class="form-group">
+
+                    <label for="studentName">
+                        Student Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="studentName"
+                        placeholder="e.g. Alpha Mugisha"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="studentId">
+                        Student ID
+                    </label>
+
+                    <input
+                        type="text"
+                        id="studentId"
+                        placeholder="e.g. NGA001"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="className">
+                        Class
+                    </label>
+
+                    <input
+                        type="text"
+                        id="className"
+                        placeholder="e.g. Year 1 Computer Science"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="save-button"
+                    id="saveStudentButton"
+                >
+                    Save Student
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- SUPABASE -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script src="app.js"></script>
 
 </body>
+
 </html>
-```
