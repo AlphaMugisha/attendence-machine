@@ -1,40 +1,111 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Attendance</title>
+    <title>RFID Attendance System</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div class="container">
+    <div class="dashboard">
 
-        <h1>RFID Attendance</h1>
-        <p class="subtitle">ESP32 Card Scanner</p>
-
-        <div class="status">
-            <span></span>
-            Connected to Supabase
-        </div>
-
-        <div class="latest-card">
-            <p>LAST CARD SCANNED</p>
-            <h2 id="latestUid">Waiting for card...</h2>
-            <small id="latestTime">--</small>
-        </div>
-
-        <div class="history">
-            <h2>Recent Scans</h2>
-
-            <div id="scanList">
-                <p>No scans yet.</p>
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">SMART ATTENDANCE</p>
+                <h1>RFID Attendance</h1>
+                <p class="subtitle">Monitor card scans from your ESP32 device.</p>
             </div>
-        </div>
+
+            <div class="connection">
+                <span class="connection-dot"></span>
+                <span>System Online</span>
+            </div>
+        </header>
+
+
+        <main class="grid">
+
+            <section class="card latest-card">
+                <div class="card-header">
+                    <div>
+                        <p class="label">LATEST SCAN</p>
+                        <h2>Last Card</h2>
+                    </div>
+
+                    <div class="icon">RFID</div>
+                </div>
+
+                <div class="uid-container">
+                    <p class="uid-label">CARD UID</p>
+                    <h3 id="latestUid">Waiting for card...</h3>
+                </div>
+
+                <div class="scan-time">
+                    <span>Scanned at</span>
+                    <strong id="latestTime">--</strong>
+                </div>
+            </section>
+
+
+            <section class="card device-card">
+                <p class="label">DEVICE</p>
+                <h2>ESP32 Scanner</h2>
+
+                <div class="device-status">
+                    <span class="status-dot"></span>
+                    <div>
+                        <strong>Connected</strong>
+                        <small>RFID reader active</small>
+                    </div>
+                </div>
+
+                <div class="device-info">
+                    <div>
+                        <span>Connection</span>
+                        <strong>Wi-Fi</strong>
+                    </div>
+
+                    <div>
+                        <span>Database</span>
+                        <strong>Supabase</strong>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="card history-card">
+
+                <div class="card-header">
+                    <div>
+                        <p class="label">ACTIVITY</p>
+                        <h2>Recent Scans</h2>
+                    </div>
+
+                    <div class="scan-count">
+                        LIVE
+                    </div>
+                </div>
+
+                <div id="scanList" class="scan-list">
+                    <p class="empty">No scans yet.</p>
+                </div>
+
+            </section>
+
+        </main>
+
+        <footer>
+            RFID Attendance System · ESP32 + Supabase
+        </footer>
 
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+    <script src="app.js"></script>
+
 </body>
 </html>
+```
